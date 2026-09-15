@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <windows.h>
-
 namespace Layout {
     constexpr int TOP_SEP        = 0;
     constexpr int ART_START      = 1;   // ASCII art occupies rows 1-5
@@ -12,17 +11,13 @@ namespace Layout {
     constexpr int DEV_START      = 9;
     constexpr int DEV_COUNT      = 4;
     constexpr int VERSION        = 13;
-
-    // Marquee is 6 rows tall (slant font height)
     constexpr int MARQUEE_TOP    = 14;
-    constexpr int MARQUEE        = 15;                       // 15..20
-    constexpr int MARQUEE_ROWS   = 6;
-    constexpr int MARQUEE_BOT    = MARQUEE + MARQUEE_ROWS;   // 21
-
-    constexpr int OUTPUT_START   = MARQUEE_BOT + 1;          // 22
-    constexpr int OUTPUT_LINES   = 6;                        // 22..27
-    constexpr int OUTPUT_SEP     = OUTPUT_START + OUTPUT_LINES; // 28
-    constexpr int PROMPT         = OUTPUT_SEP + 1;           // 29  (fits!)
+    constexpr int MARQUEE        = 15;
+    constexpr int MARQUEE_BOT    = 16;
+    constexpr int OUTPUT_START   = 17;
+    constexpr int OUTPUT_LINES   = 10;
+    constexpr int OUTPUT_SEP     = 27;
+    constexpr int PROMPT         = 28;
     constexpr int PROMPT_PREFIX  = 11;
 }
 
@@ -40,20 +35,22 @@ public:
     static void cleanup();
     static void clearScreen();
 
+    // Draw the complete initial layout (header + separators + prompt)
     static void drawFullLayout(
         const std::vector<std::string>& developers,
         const std::string& versionDate);
 
+    // Draw the rainbow ASCII-art banner
     static void drawAsciiArt();
 
+    // Partial-redraw helpers
     static void drawSeparator(int row, char ch = '=');
-    static void drawMarqueeArt(const std::vector<std::string>& artRows,
-                               int position,
-                               int frame = 0);
-    static void clearMarqueeArea();
+    static void drawMarqueeRow(const std::string& text, int position, int frame = 0);
+    static void clearMarqueeRow();
     static void drawOutputArea(const std::vector<std::string>& lines);
     static void drawPrompt(const std::string& inputBuffer);
 
+    // Low-level utilities
     static int  getConsoleWidth();
     static void setCursorPos(short x, short y);
     static void clearRow(int row);
