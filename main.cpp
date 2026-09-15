@@ -1,18 +1,3 @@
-/*
- *  CSOPESY Semi-Major Output 1  —  OS Emulator
- *  Entry point + game loop
- *
- *  Uses a non-blocking game-loop approach:
- *    • _kbhit() / _getch() for input  (no echo, no cursor fights)
- *    • Marquee::update() for animation (timer-gated, no extra thread)
- *
- *  Compile using (MSVC):
- *      cl /EHsc /std:c++17 main.cpp ConsoleUI.cpp Marquee.cpp CommandInterpreter.cpp /Fe:csopesy.exe
- *
- *  Compile using (MinGW g++):
- *      g++ -std=c++17 -o csopesy.exe main.cpp ConsoleUI.cpp Marquee.cpp CommandInterpreter.cpp
- */
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -22,9 +7,18 @@
 #include "ConsoleUI.h"
 #include "Marquee.h"
 #include "CommandInterpreter.h"
+#include "AsciiFont.h"
 
 int main() {
     ConsoleUI::init();
+
+    // Load the external font file (must sit next to csopesy.exe)
+    if (!AsciiFont::loadFont("font.txt")) {
+        std::cerr << "Fatal: could not load font.txt. "
+                     "Place it next to csopesy.exe.\n";
+        ConsoleUI::cleanup();
+        return 1;
+    }
 
     const std::vector<std::string> developers = {
         "Carlo Barreo",
@@ -36,7 +30,6 @@ int main() {
 
     ConsoleUI::drawFullLayout(developers, versionDate);
 
-    // Create core components
     Marquee marquee;
     CommandInterpreter interpreter(marquee);
 
@@ -44,7 +37,6 @@ int main() {
     std::vector<std::string> outputHistory;
     bool running = true;
 
-    // Game loop
     while (running) {
         bool marqueeRendered = marquee.update();
 
@@ -95,7 +87,6 @@ int main() {
         Sleep(1);
     }
 
-    // Goodbye sequence
     Sleep(600);
     ConsoleUI::cleanup();
     return 0;

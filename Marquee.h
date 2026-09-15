@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <chrono>
 
 class Marquee {
@@ -18,12 +19,15 @@ public:
     bool update();
 
 private:
-    std::string m_text;
-    int m_speed;       
-    int m_position;    
-    int m_direction;   
-    int m_frame;       // colour-cycle offset (increments each tick)
+    std::string              m_text;
+    std::vector<std::string> m_artRows;
+    int m_speed;
+    int m_position;
+    int m_direction;
+    int m_frame;
     bool m_running;
 
     std::chrono::steady_clock::time_point m_lastUpdate;
+
+    void rebuildArt();
 };
