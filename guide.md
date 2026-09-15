@@ -57,4 +57,7 @@ These files handle **user commands**.
   * `exit`
 * Controls the `Marquee` based on the user's commands.
 
-## 5. Build and Documentation Fil
+## 5. Build and Documentation Files
+
+- `build.bat` – Compiles the C++ files and creates `csopesy.exe`.
+- `README.txt` / `prerequisite.md` – Contains project information, requirements, and setup instructions.
