@@ -48,15 +48,13 @@ void ConsoleUI::clearScreen() {
     setCursorPos(0, 0);
 }
 
-// Forward declaration (defined after drawSeparator)
 static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b);
 
-// ── Convert '#' in a pattern string to the UTF-8 full-block char (█) ──
 static std::string blockify(const char* pattern) {
     std::string result;
     for (const char* p = pattern; *p; ++p) {
         if (*p == '#')
-            result += "\xe2\x96\x88";   // U+2588 FULL BLOCK
+            result += "\xe2\x96\x88";
         else
             result += *p;
     }
@@ -64,8 +62,6 @@ static std::string blockify(const char* pattern) {
 }
 
 void ConsoleUI::drawAsciiArt() {
-    // "CSOPESY" spelled out in block letters (5 rows × 58 visible columns).
-    // Stored as plain '#' so the source file stays pure ASCII.
     static const char* patterns[] = {
         "  ###### #######  ######  ######  ####### ####### ##    ##",
         " ##      ##      ##    ## ##   ## ##      ##       ##  ## ",
@@ -79,7 +75,6 @@ void ConsoleUI::drawAsciiArt() {
     for (int line = 0; line < Layout::ART_LINES; ++line) {
         std::string row = blockify(patterns[line]);
 
-        // Count visible characters (codepoints) for centering
         int cpCount = 0;
         for (size_t i = 0; i < row.size(); ) {
             unsigned char c = static_cast<unsigned char>(row[i]);
@@ -94,7 +89,6 @@ void ConsoleUI::drawAsciiArt() {
         setCursorPos(static_cast<short>(pad),
                      static_cast<short>(Layout::ART_START + line));
 
-        // Rainbow-render each visible character
         int charIdx = 0;
         for (size_t i = 0; i < row.size(); ) {
             unsigned char c = static_cast<unsigned char>(row[i]);
@@ -106,7 +100,6 @@ void ConsoleUI::drawAsciiArt() {
             std::string ch = row.substr(i, bytes);
 
             if (ch != " ") {
-                // Hue wraps ~360° across the art width; shifts per row
                 float hue = fmodf(charIdx * 6.2f + line * 30.0f, 360.0f);
                 int r, g, b;
                 hsvToRgb(hue, 1.0f, 1.0f, r, g, b);
@@ -129,11 +122,8 @@ void ConsoleUI::drawFullLayout(
     clearScreen();
 
     drawSeparator(Layout::TOP_SEP);
-
-    // ── Rainbow ASCII-art banner ──
     drawAsciiArt();
 
-    // ── Centred subtitle ──
     {
         std::string sub = "OS Emulator";
         int pad = (getConsoleWidth() > static_cast<int>(sub.size()))
@@ -153,23 +143,21 @@ void ConsoleUI::drawFullLayout(
 
     setCursorPos(2, Layout::VERSION);
     std::cout << "Version date: " << versionDate << Color::RESET << std::flush;
-              
+
     drawSeparator(Layout::MARQUEE_TOP);
     drawSeparator(Layout::MARQUEE_BOT);
     drawSeparator(Layout::OUTPUT_SEP, '-');
-    
+
     drawPrompt("");
 }
 
 void ConsoleUI::drawSeparator(int row, char ch) {
     int width = getConsoleWidth();
     setCursorPos(0, static_cast<short>(row));
-
     for (int i = 0; i < width; ++i) std::cout << ch;
     std::cout << Color::RESET << std::flush;
 }
 
-// ── HSV-to-RGB helper (h 0-360, s/v 0-1) ───────────────────────
 static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b) {
     h = fmodf(h, 360.0f);
     if (h < 0) h += 360.0f;
@@ -188,31 +176,58 @@ static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b) {
     b = static_cast<int>((bf + m) * 255);
 }
 
-void ConsoleUI::drawMarqueeRow(const std::string& text, int position, int frame) {
-    clearRow(Layout::MARQUEE);
-    if (text.empty() || position < 0) return;
+void ConsoleUI::drawMarqueeArt(const std::vector<std::string>& artRows,
+                               int position,
+                               int frame)
+{
+    clearMarqueeArea();
+    if (artRows.empty() || position < 0) return;
 
-    setCursorPos(static_cast<short>(position), Layout::MARQUEE);
+    int width = getConsoleWidth();
 
-    int maxLen = getConsoleWidth() - position;
-    std::string display = (static_cast<int>(text.size()) > maxLen)
-                              ? text.substr(0, maxLen)
-                              : text;
+    // Whole marquee scrolls in a single hue that cycles slowly.
+    const float HUE_STEP = 8.0f;
+    float hue = fmodf(frame * HUE_STEP, 360.0f);
+    int rr, gg, bb;
+    hsvToRgb(hue, 1.0f, 1.0f, rr, gg, bb);
 
-    // Render each character with a unique rainbow colour
-    for (int i = 0; i < static_cast<int>(display.size()); ++i) {
-        float hue = fmodf((i * 25.0f) + (frame * 8.0f), 360.0f);
-        int r, g, b;
-        hsvToRgb(hue, 1.0f, 1.0f, r, g, b);
-        // 24-bit ANSI: \033[1m = bold, \033[38;2;R;G;Bm = foreground colour
-        std::cout << "\033[1m\033[38;2;" << r << ";" << g << ";" << b << "m"
-                  << display[i];
+    for (int r = 0; r < static_cast<int>(artRows.size()) &&
+                    r < Layout::MARQUEE_ROWS; ++r)
+    {
+        const std::string& row = artRows[r];
+        if (row.empty()) continue;
+
+        int startCol = position;
+        int visible  = width - startCol;
+        if (visible <= 0) continue;
+
+        std::string display = (static_cast<int>(row.size()) > visible)
+                                  ? row.substr(0, visible)
+                                  : row;
+
+        setCursorPos(static_cast<short>(startCol),
+                     static_cast<short>(Layout::MARQUEE + r));
+
+        for (int i = 0; i < static_cast<int>(display.size()); ++i) {
+            char c = display[i];
+            if (c == ' ') {
+                std::cout << ' ';
+            } else if (c == '#') {
+                std::cout << "\033[1m\033[38;2;"
+                          << rr << ";" << gg << ";" << bb << "m"
+                          << "\xe2\x96\x88";   // solid block
+            } else {
+                std::cout << "\033[1m\033[38;2;"
+                          << rr << ";" << gg << ";" << bb << "m" << c;
+            }
+        }
+        std::cout << Color::RESET << std::flush;
     }
-    std::cout << Color::RESET << std::flush;
 }
 
-void ConsoleUI::clearMarqueeRow() {
-    clearRow(Layout::MARQUEE);
+void ConsoleUI::clearMarqueeArea() {
+    for (int r = 0; r < Layout::MARQUEE_ROWS; ++r)
+        clearRow(Layout::MARQUEE + r);
 }
 
 void ConsoleUI::drawOutputArea(const std::vector<std::string>& lines) {
@@ -233,12 +248,7 @@ void ConsoleUI::drawOutputArea(const std::vector<std::string>& lines) {
             if (static_cast<int>(line.size()) > maxLen)
                 line = line.substr(0, maxLen);
 
-            if (line.size() >= 2 && line[0] == '>' && line[1] == ' ')
-                std::cout <<  line << Color::RESET;
-            else
-                std::cout <<  line << Color::RESET;
-
-            std::cout << std::flush;
+            std::cout << line << Color::RESET << std::flush;
         }
     }
 }
@@ -247,13 +257,14 @@ void ConsoleUI::drawPrompt(const std::string& inputBuffer) {
     clearRow(Layout::PROMPT);
     setCursorPos(0, Layout::PROMPT);
 
-    std::cout << Color::BOLD <<"  Command> "
+    std::cout << Color::BOLD << "  Command> "
               << Color::RESET << inputBuffer
               << Color::RESET << std::flush;
 
     CONSOLE_CURSOR_INFO ci = { 25, TRUE };
     SetConsoleCursorInfo(s_hOut, &ci);
 }
+
 int ConsoleUI::getConsoleWidth() {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(s_hOut, &csbi);
