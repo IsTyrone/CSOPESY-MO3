@@ -1,5 +1,6 @@
 #include "ConsoleUI.h"
 #include <iostream>
+#include <cmath>
 
 HANDLE ConsoleUI::s_hOut       = INVALID_HANDLE_VALUE;
 HANDLE ConsoleUI::s_hIn        = INVALID_HANDLE_VALUE;
@@ -84,7 +85,26 @@ void ConsoleUI::drawSeparator(int row, char ch) {
     std::cout << Color::RESET << std::flush;
 }
 
-void ConsoleUI::drawMarqueeRow(const std::string& text, int position) {
+// ── HSV-to-RGB helper (h 0-360, s/v 0-1) ───────────────────────
+static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b) {
+    h = fmodf(h, 360.0f);
+    if (h < 0) h += 360.0f;
+    float c = v * s;
+    float x = c * (1.0f - fabsf(fmodf(h / 60.0f, 2.0f) - 1.0f));
+    float m = v - c;
+    float rf = 0, gf = 0, bf = 0;
+    if      (h < 60)  { rf = c; gf = x; }
+    else if (h < 120) { rf = x; gf = c; }
+    else if (h < 180) { gf = c; bf = x; }
+    else if (h < 240) { gf = x; bf = c; }
+    else if (h < 300) { rf = x; bf = c; }
+    else              { rf = c; bf = x; }
+    r = static_cast<int>((rf + m) * 255);
+    g = static_cast<int>((gf + m) * 255);
+    b = static_cast<int>((bf + m) * 255);
+}
+
+void ConsoleUI::drawMarqueeRow(const std::string& text, int position, int frame) {
     clearRow(Layout::MARQUEE);
     if (text.empty() || position < 0) return;
 
@@ -95,7 +115,16 @@ void ConsoleUI::drawMarqueeRow(const std::string& text, int position) {
                               ? text.substr(0, maxLen)
                               : text;
 
-    std::cout << Color::BOLD << Color::BGREEN << display << Color::RESET << std::flush;
+    // Render each character with a unique rainbow colour
+    for (int i = 0; i < static_cast<int>(display.size()); ++i) {
+        float hue = fmodf((i * 25.0f) + (frame * 8.0f), 360.0f);
+        int r, g, b;
+        hsvToRgb(hue, 1.0f, 1.0f, r, g, b);
+        // 24-bit ANSI: \033[1m = bold, \033[38;2;R;G;Bm = foreground colour
+        std::cout << "\033[1m\033[38;2;" << r << ";" << g << ";" << b << "m"
+                  << display[i];
+    }
+    std::cout << Color::RESET << std::flush;
 }
 
 void ConsoleUI::clearMarqueeRow() {

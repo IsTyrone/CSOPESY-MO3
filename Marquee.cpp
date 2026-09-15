@@ -5,6 +5,7 @@ Marquee::Marquee(): m_text("Hello World in CSOPESY!")
     , m_speed(100)
     , m_position(2)
     , m_direction(1)
+    , m_frame(0)
     , m_running(false)
     , m_lastUpdate(std::chrono::steady_clock::now())
 {
@@ -68,6 +69,7 @@ bool Marquee::update() {
         m_direction = 1;
     }
 
-    ConsoleUI::drawMarqueeRow(m_text, m_position);
+    ++m_frame;
+    ConsoleUI::drawMarqueeRow(m_text, m_position, m_frame);
     return true;
 }

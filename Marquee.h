@@ -22,6 +22,7 @@ private:
     int m_speed;       
     int m_position;    
     int m_direction;   
+    int m_frame;       // colour-cycle offset (increments each tick)
     bool m_running;
 
     std::chrono::steady_clock::time_point m_lastUpdate;

@@ -40,7 +40,7 @@ public:
 
     // Partial-redraw helpers
     static void drawSeparator(int row, char ch = '=');
-    static void drawMarqueeRow(const std::string& text, int position);
+    static void drawMarqueeRow(const std::string& text, int position, int frame = 0);
     static void clearMarqueeRow();
     static void drawOutputArea(const std::vector<std::string>& lines);
     static void drawPrompt(const std::string& inputBuffer);
