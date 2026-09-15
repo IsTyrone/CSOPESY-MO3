@@ -44,9 +44,19 @@ public:
     static void drawAsciiArt();
 
     static void drawSeparator(int row, char ch = '=');
+
+    // Seamless-tiling marquee renderer.
+    //   artRows   : one copy of the ASCII-art text (MARQUEE_ROWS rows)
+    //   position  : current scroll offset, in (-period, 0]
+    //   frame     : tick counter, used for hue cycling
+    //   copyWidth : width of one full copy of the text
+    //   gap       : blank columns between copies
     static void drawMarqueeArt(const std::vector<std::string>& artRows,
                                int position,
-                               int frame = 0);
+                               int frame,
+                               int copyWidth,
+                               int gap);
+
     static void clearMarqueeArea();
     static void drawOutputArea(const std::vector<std::string>& lines);
     static void drawPrompt(const std::string& inputBuffer);

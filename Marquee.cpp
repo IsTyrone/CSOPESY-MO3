@@ -2,12 +2,23 @@
 #include "ConsoleUI.h"
 #include "AsciiFont.h"
 
+// Gap between the end of one copy and the start of the next.
+static const int MARQUEE_GAP = 6;
+
+static int widestRow(const std::vector<std::string>& rows) {
+    int w = 0;
+    for (const auto& r : rows)
+        if (static_cast<int>(r.size()) > w) w = static_cast<int>(r.size());
+    return w;
+}
+
 Marquee::Marquee()
     : m_text("Hello World in CSOPESY!")
-    , m_speed(100)
+    , m_speed(60)
     , m_position(0)
-    , m_direction(-1)
     , m_frame(0)
+    , m_copyWidth(1)
+    , m_period(1)
     , m_running(false)
     , m_lastUpdate(std::chrono::steady_clock::now())
 {
@@ -16,8 +27,13 @@ Marquee::Marquee()
 
 void Marquee::rebuildArt() {
     m_artRows = AsciiFont::renderString(m_text);
-    m_position  = ConsoleUI::getConsoleWidth();
-    m_direction = -1;
+    m_copyWidth = widestRow(m_artRows);
+    if (m_copyWidth < 1) m_copyWidth = 1;
+    m_period = m_copyWidth + MARQUEE_GAP;
+
+    // Start one column past the right edge so the first copy
+    // enters from the right. +1 ensures column 0 is a gap, not a char.
+    m_position = ConsoleUI::getConsoleWidth() + 1;   // ← CHANGED
 }
 
 void Marquee::start() {
@@ -55,19 +71,16 @@ bool Marquee::update() {
     if (elapsed < m_speed) return false;
     m_lastUpdate = now;
 
-    int width = ConsoleUI::getConsoleWidth();
+    m_position -= 1;
 
-    int artWidth = 0;
-    for (const auto& r : m_artRows)
-        if (static_cast<int>(r.size()) > artWidth)
-            artWidth = static_cast<int>(r.size());
-
-    m_position += m_direction;
-    if (m_position + artWidth < 1) {
-        m_position = width;
+    // Once we've scrolled a full period past the left edge, the strip
+    // looks identical to when we started, so wrap by adding period.
+    if (m_position <= -m_period) {
+        m_position += m_period;
     }
 
     ++m_frame;
-    ConsoleUI::drawMarqueeArt(m_artRows, m_position, m_frame);
+    ConsoleUI::drawMarqueeArt(m_artRows, m_position, m_frame,
+                              m_copyWidth, MARQUEE_GAP);
     return true;
 }

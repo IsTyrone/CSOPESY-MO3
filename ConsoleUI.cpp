@@ -178,14 +178,17 @@ static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b) {
 
 void ConsoleUI::drawMarqueeArt(const std::vector<std::string>& artRows,
                                int position,
-                               int frame)
+                               int frame,
+                               int copyWidth,
+                               int gap)
 {
     clearMarqueeArea();
-    if (artRows.empty() || position < 0) return;
+    if (artRows.empty() || copyWidth <= 0) return;
 
-    int width = getConsoleWidth();
+    int width  = getConsoleWidth();
+    int period = copyWidth + gap;
+    if (period <= 0) return;
 
-    // Whole marquee scrolls in a single hue that cycles slowly.
     const float HUE_STEP = 8.0f;
     float hue = fmodf(frame * HUE_STEP, 360.0f);
     int rr, gg, bb;
@@ -197,28 +200,24 @@ void ConsoleUI::drawMarqueeArt(const std::vector<std::string>& artRows,
         const std::string& row = artRows[r];
         if (row.empty()) continue;
 
-        int startCol = position;
-        int visible  = width - startCol;
-        if (visible <= 0) continue;
+        setCursorPos(0, static_cast<short>(Layout::MARQUEE + r));
+        std::cout << "\033[1m\033[38;2;"
+                  << rr << ";" << gg << ";" << bb << "m";
 
-        std::string display = (static_cast<int>(row.size()) > visible)
-                                  ? row.substr(0, visible)
-                                  : row;
+        for (int col = 0; col < width; ++col) {
+            int artCol = col - position;
+            int m = ((artCol % period) + period) % period;
 
-        setCursorPos(static_cast<short>(startCol),
-                     static_cast<short>(Layout::MARQUEE + r));
+            char c = ' ';
+            if (m < copyWidth && m < static_cast<int>(row.size()))
+                c = row[m];
 
-        for (int i = 0; i < static_cast<int>(display.size()); ++i) {
-            char c = display[i];
             if (c == ' ') {
                 std::cout << ' ';
             } else if (c == '#') {
-                std::cout << "\033[1m\033[38;2;"
-                          << rr << ";" << gg << ";" << bb << "m"
-                          << "\xe2\x96\x88";   // solid block
+                std::cout << "\xe2\x96\x88";
             } else {
-                std::cout << "\033[1m\033[38;2;"
-                          << rr << ";" << gg << ";" << bb << "m" << c;
+                std::cout << c;
             }
         }
         std::cout << Color::RESET << std::flush;
