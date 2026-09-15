@@ -48,6 +48,80 @@ void ConsoleUI::clearScreen() {
     setCursorPos(0, 0);
 }
 
+// Forward declaration (defined after drawSeparator)
+static void hsvToRgb(float h, float s, float v, int& r, int& g, int& b);
+
+// ── Convert '#' in a pattern string to the UTF-8 full-block char (█) ──
+static std::string blockify(const char* pattern) {
+    std::string result;
+    for (const char* p = pattern; *p; ++p) {
+        if (*p == '#')
+            result += "\xe2\x96\x88";   // U+2588 FULL BLOCK
+        else
+            result += *p;
+    }
+    return result;
+}
+
+void ConsoleUI::drawAsciiArt() {
+    // "CSOPESY" spelled out in block letters (5 rows × 58 visible columns).
+    // Stored as plain '#' so the source file stays pure ASCII.
+    static const char* patterns[] = {
+        "  ###### #######  ######  ######  ####### ####### ##    ##",
+        " ##      ##      ##    ## ##   ## ##      ##       ##  ## ",
+        " ##      ####### ##    ## ######  #####   #######   ####  ",
+        " ##           ## ##    ## ##      ##           ##    ##   ",
+        "  ###### #######  ######  ##      ####### #######    ##   ",
+    };
+
+    int width = getConsoleWidth();
+
+    for (int line = 0; line < Layout::ART_LINES; ++line) {
+        std::string row = blockify(patterns[line]);
+
+        // Count visible characters (codepoints) for centering
+        int cpCount = 0;
+        for (size_t i = 0; i < row.size(); ) {
+            unsigned char c = static_cast<unsigned char>(row[i]);
+            if      ((c & 0x80) == 0)    i += 1;
+            else if ((c & 0xE0) == 0xC0) i += 2;
+            else if ((c & 0xF0) == 0xE0) i += 3;
+            else                         i += 4;
+            ++cpCount;
+        }
+        int pad = (width > cpCount) ? (width - cpCount) / 2 : 0;
+
+        setCursorPos(static_cast<short>(pad),
+                     static_cast<short>(Layout::ART_START + line));
+
+        // Rainbow-render each visible character
+        int charIdx = 0;
+        for (size_t i = 0; i < row.size(); ) {
+            unsigned char c = static_cast<unsigned char>(row[i]);
+            int bytes = 1;
+            if      ((c & 0xE0) == 0xC0) bytes = 2;
+            else if ((c & 0xF0) == 0xE0) bytes = 3;
+            else if ((c & 0xF8) == 0xF0) bytes = 4;
+
+            std::string ch = row.substr(i, bytes);
+
+            if (ch != " ") {
+                // Hue wraps ~360° across the art width; shifts per row
+                float hue = fmodf(charIdx * 6.2f + line * 30.0f, 360.0f);
+                int r, g, b;
+                hsvToRgb(hue, 1.0f, 1.0f, r, g, b);
+                std::cout << "\033[1m\033[38;2;"
+                          << r << ";" << g << ";" << b << "m" << ch;
+            } else {
+                std::cout << ' ';
+            }
+            i += bytes;
+            ++charIdx;
+        }
+        std::cout << Color::RESET << std::flush;
+    }
+}
+
 void ConsoleUI::drawFullLayout(
     const std::vector<std::string>& developers,
     const std::string& versionDate)
@@ -56,8 +130,18 @@ void ConsoleUI::drawFullLayout(
 
     drawSeparator(Layout::TOP_SEP);
 
-    setCursorPos(2, Layout::WELCOME);
-    std::cout << Color::BOLD << "Welcome to CSOPESY!" << Color::RESET << std::flush;
+    // ── Rainbow ASCII-art banner ──
+    drawAsciiArt();
+
+    // ── Centred subtitle ──
+    {
+        std::string sub = "OS Emulator";
+        int pad = (getConsoleWidth() > static_cast<int>(sub.size()))
+                      ? (getConsoleWidth() - static_cast<int>(sub.size())) / 2
+                      : 0;
+        setCursorPos(static_cast<short>(pad), Layout::SUBTITLE);
+        std::cout << Color::BOLD << sub << Color::RESET << std::flush;
+    }
 
     setCursorPos(2, Layout::DEV_LABEL);
     std::cout << "Group developers:" << Color::RESET << std::flush;

@@ -4,18 +4,20 @@
 #include <windows.h>
 namespace Layout {
     constexpr int TOP_SEP        = 0;
-    constexpr int WELCOME        = 1;
-    constexpr int DEV_LABEL      = 3;
-    constexpr int DEV_START      = 4;
-    constexpr int DEV_COUNT      = 5;
-    constexpr int VERSION        = 10;
-    constexpr int MARQUEE_TOP    = 11;
-    constexpr int MARQUEE        = 12;
-    constexpr int MARQUEE_BOT    = 13;
-    constexpr int OUTPUT_START   = 14;
+    constexpr int ART_START      = 1;   // ASCII art occupies rows 1-5
+    constexpr int ART_LINES      = 5;
+    constexpr int SUBTITLE       = 6;   // "OS Emulator" centred
+    constexpr int DEV_LABEL      = 8;
+    constexpr int DEV_START      = 9;
+    constexpr int DEV_COUNT      = 4;
+    constexpr int VERSION        = 13;
+    constexpr int MARQUEE_TOP    = 14;
+    constexpr int MARQUEE        = 15;
+    constexpr int MARQUEE_BOT    = 16;
+    constexpr int OUTPUT_START   = 17;
     constexpr int OUTPUT_LINES   = 10;
-    constexpr int OUTPUT_SEP     = 24;
-    constexpr int PROMPT         = 25;
+    constexpr int OUTPUT_SEP     = 27;
+    constexpr int PROMPT         = 28;
     constexpr int PROMPT_PREFIX  = 11;
 }
 
@@ -37,6 +39,9 @@ public:
     static void drawFullLayout(
         const std::vector<std::string>& developers,
         const std::string& versionDate);
+
+    // Draw the rainbow ASCII-art banner
+    static void drawAsciiArt();
 
     // Partial-redraw helpers
     static void drawSeparator(int row, char ch = '=');
