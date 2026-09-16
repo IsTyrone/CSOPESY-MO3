@@ -2,8 +2,6 @@
 #include <string>
 #include <vector>
 
-// Hard-coded 5-row ASCII font.
-// Uses only '#' and space. Every glyph is exactly 5 columns wide.
 namespace AsciiFont {
 
     constexpr int GLYPH_HEIGHT = 5;

@@ -2,7 +2,6 @@
 #include "ConsoleUI.h"
 #include "AsciiFont.h"
 
-// Gap between the end of one copy and the start of the next.
 static const int MARQUEE_GAP = 6;
 
 static int widestRow(const std::vector<std::string>& rows) {
@@ -31,9 +30,7 @@ void Marquee::rebuildArt() {
     if (m_copyWidth < 1) m_copyWidth = 1;
     m_period = m_copyWidth + MARQUEE_GAP;
 
-    // Start one column past the right edge so the first copy
-    // enters from the right. +1 ensures column 0 is a gap, not a char.
-    m_position = ConsoleUI::getConsoleWidth() + 1;   // ← CHANGED
+    m_position = ConsoleUI::getConsoleWidth() + 1;
 }
 
 void Marquee::start() {
@@ -73,8 +70,6 @@ bool Marquee::update() {
 
     m_position -= 1;
 
-    // Once we've scrolled a full period past the left edge, the strip
-    // looks identical to when we started, so wrap by adding period.
     if (m_position <= -m_period) {
         m_position += m_period;
     }

@@ -18,18 +18,17 @@ public:
 
     bool update();
 
-    // Exposed so ConsoleUI can tile the art across the console width.
     int copyWidth() const { return m_copyWidth; }
     int period()    const { return m_period; }
 
 private:
     std::string              m_text;
-    std::vector<std::string> m_artRows;   // ONE copy of the text
+    std::vector<std::string> m_artRows;
     int m_speed;
-    int m_position;                       // in (-period, 0]
+    int m_position;
     int m_frame;
-    int m_copyWidth;                      // width of one copy
-    int m_period;                         // copyWidth + gap
+    int m_copyWidth;
+    int m_period;
     bool m_running;
 
     std::chrono::steady_clock::time_point m_lastUpdate;

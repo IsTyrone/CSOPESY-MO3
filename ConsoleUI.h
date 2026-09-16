@@ -14,14 +14,14 @@ namespace Layout {
     constexpr int VERSION        = 13;
 
     constexpr int MARQUEE_TOP    = 14;
-    constexpr int MARQUEE        = 15;                       // 15..19
+    constexpr int MARQUEE        = 15;
     constexpr int MARQUEE_ROWS   = 5;
-    constexpr int MARQUEE_BOT    = MARQUEE + MARQUEE_ROWS;   // 20
+    constexpr int MARQUEE_BOT    = MARQUEE + MARQUEE_ROWS;
 
-    constexpr int OUTPUT_START   = MARQUEE_BOT + 1;          // 21
-    constexpr int OUTPUT_LINES   = 7;                        // 21..27
-    constexpr int OUTPUT_SEP     = OUTPUT_START + OUTPUT_LINES; // 28
-    constexpr int PROMPT         = OUTPUT_SEP + 1;           // 29
+    constexpr int OUTPUT_START   = MARQUEE_BOT + 1;
+    constexpr int OUTPUT_LINES   = 7;
+    constexpr int OUTPUT_SEP     = OUTPUT_START + OUTPUT_LINES;
+    constexpr int PROMPT         = OUTPUT_SEP + 1;
     constexpr int PROMPT_PREFIX  = 11;
 }
 
@@ -45,12 +45,6 @@ public:
 
     static void drawSeparator(int row, char ch = '=');
 
-    // Seamless-tiling marquee renderer.
-    //   artRows   : one copy of the ASCII-art text (MARQUEE_ROWS rows)
-    //   position  : current scroll offset, in (-period, 0]
-    //   frame     : tick counter, used for hue cycling
-    //   copyWidth : width of one full copy of the text
-    //   gap       : blank columns between copies
     static void drawMarqueeArt(const std::vector<std::string>& artRows,
                                int position,
                                int frame,
