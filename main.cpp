@@ -32,7 +32,7 @@ int main() {
         "David Javier",
         "Tyrone Lee"
     };
-    const std::string versionDate = "09/15/2026";
+    const std::string versionDate = "09/27/2026";
 
     ConsoleUI::drawFullLayout(developers, versionDate);
 
