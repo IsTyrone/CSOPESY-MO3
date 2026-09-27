@@ -83,7 +83,10 @@ CommandInterpreter::Result CommandInterpreter::cmdSetSpeed(const std::string& ar
     if (args.empty())
         return { { "Usage: set_speed <milliseconds>" }, false };
     try {
-        int speed = std::stoi(args);
+        size_t pos;
+        int speed = std::stoi(args, &pos);
+        if (pos != args.size())
+            return { { "must be a whole number in milliseconds (e.g. 100)" }, false };
         if (speed <= 0)
             return { { "Speed must be a positive integer." }, false };
         m_marquee.setSpeed(speed);
