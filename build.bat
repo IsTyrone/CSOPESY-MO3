@@ -10,7 +10,7 @@ where g++ >nul 2>nul && set "GXX=g++"
 if not defined GXX if exist "D:\School\C_CMD\bin\g++.exe" set "GXX=D:\School\C_CMD\bin\g++.exe"
 if not defined GXX goto nocompiler
 
-"%GXX%" -std=c++17 -static -static-libgcc -static-libstdc++ -o csopesy.exe main.cpp ConsoleUI.cpp Marquee.cpp CommandInterpreter.cpp
+"%GXX%" -std=c++17 -static -static-libgcc -static-libstdc++ -o csopesy.exe main.cpp ConsoleUI.cpp Marquee.cpp CommandInterpreter.cpp Config.cpp
 if errorlevel 1 goto fail
 
 echo.

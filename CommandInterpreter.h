@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "Config.h"
 
 class Marquee;
 
@@ -22,7 +23,9 @@ private:
     Result cmdSetText(const std::string& args);
     Result cmdSetSpeed(const std::string& args);
     Result cmdExit();
+    Result cmdInitialize();
     Result cmdUnknown(const std::string& cmd);
 
     Marquee& m_marquee;
+    Config   m_config;
 };

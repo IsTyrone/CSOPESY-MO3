@@ -39,6 +39,8 @@ CommandInterpreter::Result CommandInterpreter::execute(const std::string& input)
         return cmdSetSpeed(args);
     if (lc == "exit")           
         return cmdExit();
+    if (lc == "initialize")     
+        return cmdInitialize();
 
     return cmdUnknown(cmd);
 }
@@ -52,6 +54,7 @@ CommandInterpreter::Result CommandInterpreter::cmdHelp() {
             "  stop_marquee    Stop the marquee animation",
             "  set_text <t>    Set the marquee display text",
             "  set_speed <ms>  Set refresh rate in milliseconds",
+            "  initialize      Load settings from config.txt",
             "  exit            Exit the program"
         },
         false
@@ -99,6 +102,15 @@ CommandInterpreter::Result CommandInterpreter::cmdSetSpeed(const std::string& ar
 CommandInterpreter::Result CommandInterpreter::cmdExit() {
     if (m_marquee.isRunning()) m_marquee.stop();
     return { { "Goodbye!" }, true };
+}
+
+CommandInterpreter::Result CommandInterpreter::cmdInitialize() {
+    if (m_config.loadFromFile("config.txt")) {
+        auto lines = m_config.dump();
+        lines.insert(lines.begin(), "Configuration loaded successfully.");
+        return { lines, false };
+    }
+    return { { "Error: could not open config.txt" }, false };
 }
 
 CommandInterpreter::Result CommandInterpreter::cmdUnknown(const std::string& cmd) {
