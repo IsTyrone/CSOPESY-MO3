@@ -59,6 +59,7 @@ After successfully building the project, run:
 | Command          | Description                                  |
 | ---------------- | -------------------------------------------- |
 | `help`           | Display available commands                   |
+| `initialize`     | Load settings from `config.txt`              |
 | `start_marquee`  | Start the marquee animation                  |
 | `stop_marquee`   | Stop the marquee animation                   |
 | `set_text <t>`   | Set the marquee display text                 |
@@ -69,6 +70,7 @@ After successfully building the project, run:
 
 ```text
 help
+initialize
 start_marquee
 stop_marquee
 set_text Hello World
@@ -76,14 +78,62 @@ set_speed 100
 exit
 ```
 
+## Configuration (`config.txt`)
+
+The program reads its OS emulator settings from `config.txt` at runtime via the `initialize` command. Edit this file before running to change behavior.
+
+### CPU & Scheduling
+
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `num-cpu` | `4` | Number of CPU cores. Determines how many processes can run simultaneously. |
+| `scheduler` | `"rr"` | Scheduling algorithm. `"rr"` = Round-Robin (processes take turns), `"fcfs"` = First-Come-First-Served (each process runs to completion). |
+| `quantum-cycles` | `5` | Time quantum for Round-Robin only. Number of CPU cycles a process gets before being preempted. |
+
+### Process Generation
+
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `batch-process-freq` | `1` | How often (in CPU cycles) a new process is generated. `1` = every cycle. |
+| `min-ins` | `1000` | Minimum number of instructions assigned to a new process. |
+| `max-ins` | `2000` | Maximum number of instructions assigned to a new process. |
+| `delays-per-exec` | `0` | Number of idle cycles between each instruction execution. `0` = no delay. |
+
+### Memory
+
+| Parameter | Example | Description |
+|-----------|---------|-------------|
+| `max-overall-mem` | `1024` | Total system memory available (in KB). |
+| `mem-per-frame` | `64` | Size of each memory frame for paging. Total frames = `max-overall-mem / mem-per-frame`. |
+| `min-mem-per-proc` | `64` | Minimum memory a process requires. |
+| `max-mem-per-proc` | `256` | Maximum memory a process requires. |
+
+### Example `config.txt`
+
+```text
+num-cpu 4
+scheduler "rr"
+quantum-cycles 5
+batch-process-freq 1
+min-ins 1000
+max-ins 2000
+delays-per-exec 0
+max-overall-mem 1024
+mem-per-frame 64
+min-mem-per-proc 64
+max-mem-per-proc 256
+```
+
 ## Project Structure
 
 ```text
 .
 ├── main.cpp
-├── ConsoleUI.cpp
-├── Marquee.cpp
-├── CommandInterpreter.cpp
+├── ConsoleUI.cpp / .h
+├── Marquee.cpp / .h
+├── CommandInterpreter.cpp / .h
+├── Config.cpp / .h
+├── config.txt
 ├── build.bat
 └── README.md
 ```
